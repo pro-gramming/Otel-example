@@ -1,0 +1,52 @@
+version: '3'
+services:
+  carnivore-plants-app:
+    build: .
+    image: carnivore-plants-app:v1
+    working_dir: /app
+    volumes:
+      - .:/app
+      # - ./logs:/var/log
+    command: python /app/app.py
+    ports:
+      - "5005:5005"
+    depends_on:
+      - otel-collector
+      - loki
+      - grafana
+  otel-collector:
+    image: otel/opentelemetry-collector:latest
+    volumes:
+      - ./otel-config.yaml:/etc/otel/config.yaml
+    command:
+      - '--config=/etc/otel/config.yaml'
+    ports:
+      - "4317:4317" #grpc
+      - "4318:4318" #http
+    depends_on:
+      - loki
+  loki:
+    image: grafana/loki:main
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./loki-config.yaml:/etc/loki/local-config.yaml
+    command: -config.file=/etc/loki/local-config.yaml
+  grafana:
+    image: grafana/grafana:11.0.0
+    environment:
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_BASIC_ENABLED=false
+      - GF_FEATURE_TOGGLES_ENABLE=accessControlOnCall
+      - GF_INSTALL_PLUGINS=https://storage.googleapis.com/integration-artifacts/grafana-lokiexplore-app/grafana-lokiexplore-app-latest.zip;grafana-lokiexplore-app
+    ports:
+      - 3000:3000/tcp
+    volumes:
+      - ./grafana:/etc/grafana/provisioning
+    
+    
+    
+
+
+    

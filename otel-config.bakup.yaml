@@ -1,0 +1,38 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+      http:
+
+# processors:
+#   resource:
+#     attributes:
+#     - action: insert
+#       key: loki.format
+#       value: logfmt
+
+exporters:
+  # otlphttp/logs:
+  #   endpoint: "http://loki:3100/otlp"
+  #   tls:
+  #     insecure: true
+  debug:
+    verbosity: normal
+  loki:
+    endpoint: "http://loki:3100/loki/api/v1/push"
+    tls:
+      insecure: true
+    # default_labels_enabled:
+    #   exporter: false
+    #   job: true
+    # sending_queue:
+    #   enabled: true
+    #   # Tuning opportunity
+    #   queue_size: 150000
+    # timeout: 10s
+service:
+  pipelines:
+    logs:
+      receivers: [otlp]
+      # processors: [resource]
+      exporters: [debug,loki]
